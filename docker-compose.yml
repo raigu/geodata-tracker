@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:1337:1337"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-  nginx:
+  frontend:
     image: nginx:1.21.0-alpine
     volumes:
       - "./front:/usr/share/nginx/html"
