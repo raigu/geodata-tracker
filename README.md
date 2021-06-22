@@ -4,7 +4,7 @@ Location based data gathering and sharing platform.
 
 ```bash
 $ cp .env.dev .env
-$ cp js/env/js.dev js/env.js
+$ cp front/js/envs.js.dev front/js/envs.js
 $ docker-compose up -d
 ```
 
