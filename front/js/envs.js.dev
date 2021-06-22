@@ -1,0 +1,6 @@
+var ENV = {
+    Parse : {
+        APP_ID: 'vihm',
+        serverURL: 'http://localhost:1337/parse',
+    }
+}

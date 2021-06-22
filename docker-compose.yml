@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  server:
+    image: parseplatform/parse-server:4.5.0
+    command: --appId vihm --masterKey pilv --databaseURI mongodb://mongodb/testdc
+    ports:
+      - 1337:1337
+  dashboard:
+    image: parseplatform/parse-dashboard
+    ports:
+      - 4040:4040
+    volumes:
+      - "./parse-dashboard-config.json:/src/Parse-Dashboard/parse-dashboard-config.json"
+    command: --dev
+  mongodb:
+    image: mongo:4.4
+  mongogui:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+    ports:
+      - 8081:8081
