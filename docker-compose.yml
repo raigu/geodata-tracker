@@ -1,22 +1,29 @@
 version: "3.7"
 services:
-  server:
+  backend:
     image: parseplatform/parse-server:4.5.0
-    command: --appId vihm --masterKey pilv --databaseURI mongodb://mongodb/testdc
+    environment:
+      PARSE_SERVER_APPLICATION_ID: geotag
+      PARSE_SERVER_MASTER_KEY: ${MASTER_KEY}
+      PARSE_SERVER_DATABASE_URI: mongodb://mongodb/geotag
     ports:
-      - 1337:1337
+      - "127.0.0.1:1337:1337"
+  nginx:
+    image: nginx:1.21.0-alpine
+    volumes:
+      - "./front:/usr/share/nginx/html"
+    ports:
+      - "127.0.0.1:8080:80"
   dashboard:
     image: parseplatform/parse-dashboard
+    environment: # https://hub.docker.com/r/parseplatform/parse-dashboard
+      PARSE_DASHBOARD_SERVER_URL: ${BACKEND_URL}/parse
+      PARSE_DASHBOARD_APP_ID: geotag
+      PARSE_DASHBOARD_MASTER_KEY: ${MASTER_KEY}
+      PARSE_DASHBOARD_USER_ID: ${USER_NAME}
+      PARSE_DASHBOARD_USER_PASSWORD: ${USER_PASSWORD}
+      PARSE_DASHBOARD_ALLOW_INSECURE_HTTP: 1
     ports:
-      - 4040:4040
-    volumes:
-      - "./parse-dashboard-config.json:/src/Parse-Dashboard/parse-dashboard-config.json"
-    command: --dev
+      - "127.0.0.1:4040:4040"
   mongodb:
     image: mongo:4.4
-  mongogui:
-    image: mongo-express
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongodb
-    ports:
-      - 8081:8081

@@ -1,6 +1,6 @@
 var ENV = {
     Parse : {
-        APP_ID: 'vihm',
+        APP_ID: 'geotag',
         serverURL: 'http://localhost:1337/parse',
     }
 }
