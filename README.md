@@ -5,6 +5,7 @@ Location based data gathering and sharing platform.
 ```bash
 $ cp .env.dev .env
 $ cp front/js/envs.js.dev front/js/envs.js
+$ docker-compose run --rm -u root --entrypoint "ash -c"  backend "cd /parse-server/cloud && npm ci"
 $ docker-compose up -d
 ```
 

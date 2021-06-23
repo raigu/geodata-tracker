@@ -1,0 +1,15 @@
+{
+  "name": "cloud",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rait Kapp",
+  "license": "ISC",
+  "dependencies": {
+    "parse-cloud-image": "^1.0.1",
+    "parse-server": "^4.5.0"
+  }
+}
