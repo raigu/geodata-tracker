@@ -8,6 +8,9 @@ services:
       PARSE_SERVER_DATABASE_URI: mongodb://mongodb/geotag
       PARSE_SERVER_URL: ${BACKEND_URL}/parse
       PARSE_PUBLIC_SERVER_URL: ${BACKEND_URL}/parse
+      PARSE_SERVER_CLOUD: /parse-server/cloud/main.js
+    volumes:
+      - "./cloud:/parse-server/cloud"
     ports:
       - "127.0.0.1:1337:1337"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
