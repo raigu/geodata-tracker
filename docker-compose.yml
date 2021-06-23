@@ -6,6 +6,7 @@ services:
       PARSE_SERVER_APPLICATION_ID: geotag
       PARSE_SERVER_MASTER_KEY: ${MASTER_KEY}
       PARSE_SERVER_DATABASE_URI: mongodb://mongodb/geotag
+      PARSE_SERVER_URL: ${BACKEND_URL}
     ports:
       - "127.0.0.1:1337:1337"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
