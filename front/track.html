@@ -28,17 +28,17 @@
 <div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
 <script>
 
-    var map;
-    var myLocation;
-    var myTrack;
-    var Report;
+    let map;
+    let currentLocation;
+    let track;
+    let Report;
 
     // User's location
     var lat = 59.376227410403395
     var lon = 24.62042224964793
 
     function initMap() {
-        map = L.map('mapid').setView([lat, lon], 13);
+        map = L.map('mapid').setView([lat, lon], 8);
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
             maxZoom: 18,
@@ -48,15 +48,40 @@
             tileSize: 512,
             zoomOffset: -1
         }).addTo(map);
+
+
+        currentLocation = new CurrentLocation(map)
+        currentLocation.refresh()
+            .then((point) => {
+                map.setView([point.lat, point.lng], 16)
+            })
+
+        track = new Track(map)
+        setInterval(function () {
+                currentLocation.refresh()
+                    .then((point) => {
+                        track.appendPoint(point)
+                        track.refresh()
+                    })
+            },
+            2000);
     }
 
+    /**
+     * My track on map
+     */
     class Track {
-        constructor() {
+        constructor(map) {
             this._points = []
+            this._layer = L.geoJSON().addTo(map)
         }
 
         appendPoint(point) {
             this._points.push(point)
+        }
+
+        refresh() {
+            this._layer.addData(this.geoJSON)
         }
 
         get geoJSON() {
@@ -68,15 +93,18 @@
                 }
             ]
         }
-
-        subscribe(callback) {
-            setInterval(() => {
-                callback(this.geoJSON)
-            }, 5000)
-        }
     }
 
+    /**
+     * My current location on map
+     */
     class CurrentLocation {
+
+        constructor(map) {
+            this._map = map
+            this._marker = null
+        }
+
         get point() {
             return new Promise((resolve, reject) => {
                 // Try HTML5 geolocation.
@@ -100,61 +128,26 @@
             })
         }
 
-        subscribe(callback) {
-            setInterval(() => {
-                this.point.then((point) => {
-                    callback(point)
+        refresh() {
+            return this.point
+                .then((point) => {
+                    let latLng = L.latLng(point.lat, point.lng)
+                    if (!this._marker) {
+                        this._marker = L.marker(latLng).addTo(this._map)
+                    } else {
+                        this._marker.setLatLng(latLng)
+                    }
+
+                    return point
                 })
-            }, 5000)
         }
     }
-
-    const track = new Track()
-    const currentLocation = new CurrentLocation()
-
-    currentLocation.subscribe(point => {
-        console.log('point called', point);
-        if (!map) {
-            return; // if no map initialized, nothing to display
-        }
-        let latLng = L.latLng(point.lat, point.lng)
-        if (!myLocation) {
-            myLocation = L.marker(latLng).addTo(map);
-        } else {
-            myLocation.setLatLng(latLng)
-        }
-
-        track.appendPoint(point)
-    })
-
-    track.subscribe(geoJson => {
-        if (!map) {
-            return;
-        }
-        if (!myTrack) {
-            myTrack = L.geoJSON().addTo(map)
-        }
-
-        console.log(geoJson)
-        myTrack.addData(geoJson)
-    })
 
     window.addEventListener('DOMContentLoaded', function onLoad() {
         initMap()
 
         Parse.initialize(ENV.Parse.APP_ID)
         Parse.serverURL = ENV.Parse.serverURL
-
-        /*
-        var point = new Parse.GeoPoint({latitude: 59.376227410403395, longitude: 24.62042224964793})
-
-        var Track = Parse.Object.extend("Track")
-        var track = new Track()
-        return point.save({
-            'location': point,
-            'device_id': deviceId,
-        })
-         */
     })
 </script>
 <script src="https://npmcdn.com/parse/dist/parse.js"></script>
