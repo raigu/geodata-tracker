@@ -30,6 +30,7 @@
 
     var map;
     var myLocation;
+    var myTrack;
     var Report;
 
     // User's location
@@ -47,6 +48,32 @@
             tileSize: 512,
             zoomOffset: -1
         }).addTo(map);
+    }
+
+    class Track {
+        constructor() {
+            this._points = []
+        }
+
+        appendPoint(point) {
+            this._points.push(point)
+        }
+
+        get geoJSON() {
+            let coordinates = this._points.map(point => [point.lng, point.lat])
+            return [
+                {
+                    "type": "LineString",
+                    "coordinates": coordinates,
+                }
+            ]
+        }
+
+        subscribe(callback) {
+            setInterval(() => {
+                callback(this.geoJSON)
+            }, 5000)
+        }
     }
 
     class CurrentLocation {
@@ -82,9 +109,11 @@
         }
     }
 
+    const track = new Track()
     const currentLocation = new CurrentLocation()
 
     currentLocation.subscribe(point => {
+        console.log('point called', point);
         if (!map) {
             return; // if no map initialized, nothing to display
         }
@@ -94,6 +123,20 @@
         } else {
             myLocation.setLatLng(latLng)
         }
+
+        track.appendPoint(point)
+    })
+
+    track.subscribe(geoJson => {
+        if (!map) {
+            return;
+        }
+        if (!myTrack) {
+            myTrack = L.geoJSON().addTo(map)
+        }
+
+        console.log(geoJson)
+        myTrack.addData(geoJson)
     })
 
     window.addEventListener('DOMContentLoaded', function onLoad() {
