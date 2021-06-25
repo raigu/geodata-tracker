@@ -29,7 +29,6 @@
 <script>
 
     let map;
-    let currentLocation;
     let track;
     let Report;
 
@@ -49,22 +48,13 @@
             zoomOffset: -1
         }).addTo(map);
 
-
-        currentLocation = new CurrentLocation(map)
-        currentLocation.refresh()
-            .then((point) => {
-                map.setView([point.lat, point.lng], 16)
-            })
-
         track = new Track(map)
-        setInterval(function () {
-                currentLocation.refresh()
-                    .then((point) => {
-                        track.appendPoint(point)
-                        track.refresh()
-                    })
-            },
-            2000);
+
+        let gps = new GPS()
+        gps.createMarker(map)
+            .then(marker => map.setView(marker.getLatLng(), 14))
+        gps.addChangeListener(point => track.appendPoint(point))
+        gps.start()
     }
 
     /**
@@ -78,9 +68,10 @@
 
         appendPoint(point) {
             this._points.push(point)
+            this._refresh()
         }
 
-        refresh() {
+        _refresh() {
             this._layer.addData(this.geoJSON)
         }
 
@@ -98,11 +89,10 @@
     /**
      * My current location on map
      */
-    class CurrentLocation {
+    class GPS {
 
-        constructor(map) {
-            this._map = map
-            this._marker = null
+        constructor() {
+            this._changeListeners = []
         }
 
         get point() {
@@ -128,19 +118,41 @@
             })
         }
 
-        refresh() {
+        addChangeListener(callback) {
+            this._changeListeners.push(callback)
+        }
+
+        start() {
+            if (!this._geoWatch && navigator.geolocation) {
+                let self = this
+                // source: https://love2dev.com/blog/html-geolocation/
+                this._geoWatch = navigator.geolocation.watchPosition(function setCurrentPosition(position) {
+                    self._changeListeners.forEach((callback) => {
+                        callback({lat: position.coords.latitude, lng: position.coords.longitude})
+                    })
+                }, function positionError(error) {
+                    console.log(error)
+                }, {
+                    enableHighAccuracy: false, timeout: 15000, maximumAge: 0
+                });
+            }
+        }
+
+        createMarker(map) {
             return this.point
                 .then((point) => {
                     let latLng = L.latLng(point.lat, point.lng)
-                    if (!this._marker) {
-                        this._marker = L.marker(latLng).addTo(this._map)
-                    } else {
-                        this._marker.setLatLng(latLng)
-                    }
+                    let marker = L.marker(latLng).addTo(map);
 
-                    return point
+                    this.addChangeListener((point) => {
+                        let latLng = L.latLng(point.lat, point.lng)
+                        marker.setLatLng(latLng)
+                    })
+
+                    return marker;
                 })
         }
+
     }
 
     window.addEventListener('DOMContentLoaded', function onLoad() {
