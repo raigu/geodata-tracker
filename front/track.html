@@ -26,7 +26,22 @@
 
 
 <div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
+
+<pre id="console" style="position: absolute; left: 0; top:0; width: 100%; height:100%;"></pre>
+
 <script>
+
+    class Logger {
+        info() {
+            let message = []
+            for (let i=0; i < arguments.length; i++) {
+                message.push(arguments[i])
+            }
+            document.getElementById('console').innerText = document.getElementById('console').innerText + "\n"  + message.join(', ');
+        }
+    }
+
+    let logger = new Logger()
 
     let map;
     let track;
@@ -37,6 +52,7 @@
     var lon = 24.62042224964793
 
     function initMap() {
+        logger.info('init map')
         map = L.map('mapid').setView([lat, lon], 8);
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
@@ -67,6 +83,7 @@
         }
 
         appendPoint(point) {
+            logger.info('New point in tracker', point.lat, point.lng)
             this._points.push(point)
             this._refresh()
         }
