@@ -26,17 +26,18 @@
 
 
 <div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
-<script>
 
-    var map;
-    var Report;
+<script>
+    let map;
+    let track;
+    let Report;
 
     // User's location
     var lat = 59.376227410403395
     var lon = 24.62042224964793
 
     function initMap() {
-        map = L.map('mapid').setView([lat, lon], 13);
+        map = L.map('mapid').setView([lat, lon], 8);
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
             maxZoom: 18,
@@ -46,113 +47,119 @@
             tileSize: 512,
             zoomOffset: -1
         }).addTo(map);
+
+        index = new Track(map)
+
+        let gps = new GPS()
+        gps.createMarker(map)
+            .then(marker => map.setView(marker.getLatLng(), 14))
+        gps.addChangeListener(point => index.appendPoint(point))
+        gps.start()
     }
 
-    function initAddEntryButton() {
-        L.Control.AddEntryButton = L.Control.extend({
-            onAdd: function (map) {
+    /**
+     * My track on map
+     */
+    class Track {
+        constructor(map) {
+            this._points = []
+            this._layer = L.geoJSON().addTo(map)
+        }
 
-                var button = L.DomUtil.create('button')
-                button.style.height = '30px'
-                button.style.weight = '30px';
-                button.style.border = '2px rgb(204, 204, 204) solid';
-                button.style.borderRadius = '4px'
-                button.style.backgroundColor = '#fff';
+        appendPoint(point) {
+            this._points.push(point)
+            this._refresh()
+        }
 
-                button.innerHTML = 'Lisa pilt';
+        _refresh() {
+            this._layer.addData(this.geoJSON)
+        }
 
-                button.addEventListener('click', function (event) {
-                    event.preventDefault();
+        get geoJSON() {
+            let coordinates = this._points.map(point => [point.lng, point.lat])
+            return [
+                {
+                    "type": "LineString",
+                    "coordinates": coordinates,
+                }
+            ]
+        }
+    }
 
-                    location.href = 'upload.html'
+    /**
+     * My current location on map
+     */
+    class GPS {
+
+        constructor() {
+            this._changeListeners = []
+        }
+
+        get point() {
+            return new Promise((resolve, reject) => {
+                // Try HTML5 geolocation.
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const pos = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                            };
+                            resolve(pos)
+                        },
+                        () => {
+                            reject("The Geolocation service failed.")
+                        }
+                    );
+                } else {
+                    // Browser doesn't support Geolocation
+                    reject("Your browser doesn't support geolocation")
+                }
+            })
+        }
+
+        addChangeListener(callback) {
+            this._changeListeners.push(callback)
+        }
+
+        start() {
+            if (!this._geoWatch && navigator.geolocation) {
+                let self = this
+                // source: https://love2dev.com/blog/html-geolocation/
+                this._geoWatch = navigator.geolocation.watchPosition(function setCurrentPosition(position) {
+                    self._changeListeners.forEach((callback) => {
+                        callback({lat: position.coords.latitude, lng: position.coords.longitude})
+                    })
+                }, function positionError(error) {
+                    console.log(error)
+                }, {
+                    enableHighAccuracy: false, timeout: 15000, maximumAge: 0
+                });
+            }
+        }
+
+        createMarker(map) {
+            return this.point
+                .then((point) => {
+                    let latLng = L.latLng(point.lat, point.lng)
+                    let marker = L.marker(latLng).addTo(map);
+
+                    this.addChangeListener((point) => {
+                        let latLng = L.latLng(point.lat, point.lng)
+                        marker.setLatLng(latLng)
+                    })
+
+                    return marker;
                 })
-
-                return button
-            },
-
-            onRemove: function (map) {
-                // Nothing to do here
-            }
-        });
-        L.control.addEntryButton = function (opts) {
-            return new L.Control.AddEntryButton(opts);
         }
 
-        L.control.addEntryButton({position: 'bottomright'}).addTo(map);
-    }
-
-    function reportsToGeoJson(result) {
-        return new Promise(function (resolve, reject) {
-
-            var data = [];
-            var l;
-
-            for (var i = 0; i < result.length; i++) {
-                l = result[i].get('location')
-                console.log(l)
-                data.push({
-                    "type": "Feature",
-                    "properties": {
-                        "Tags": [],
-                        "Comment": "",
-                        "Image": result[i].get('image')
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [l.longitude, l.latitude]
-                    }
-                })
-            }
-
-            resolve(data);
-        });
-    }
-
-    function addGeoJsonToMap(data) {
-        function onEachFeature(feature, layer) {
-            var popupContent = "<p> " + feature.properties.Tags.join(",") + "</p>"
-                + '<img width=100 src="' + feature.properties.Image + '"/>';
-
-            if (feature.properties && feature.properties.popupContent) {
-                popupContent += feature.properties.popupContent;
-            }
-
-            layer.bindPopup(popupContent);
-        }
-
-        function filter(feature, layer) {
-            // @todo filtreerimine
-            return true;
-        }
-
-        L.geoJson(data, {onEachFeature: onEachFeature, filter: filter}).addTo(map);
     }
 
     window.addEventListener('DOMContentLoaded', function onLoad() {
         initMap()
-        initAddEntryButton()
 
-        Parse.initialize(ENV.Parse.APP_ID)
-        Parse.serverURL = ENV.Parse.serverURL
-        Report = Parse.Object.extend("Report")
-
-        var l = new Parse.GeoPoint(lat, lon)
-        var query = new Parse.Query(Report)
-        query.withinKilometers("location", l, 30, true)
-        query.find()
-            .then(function geoJson(result) {
-                console.log('result');
-                console.log(result)
-                return reportsToGeoJson(result)
-            })
-            .then(function geoJsonToMap(data) {
-                addGeoJsonToMap(data);
-
-                return true;
-            })
-            .catch(function (error) {
-                console.error('Could not fetch reports', report)
-            })
+        //Parse.initialize(ENV.Parse.APP_ID)
+        //Parse.serverURL = ENV.Parse.serverURL
     })
 </script>
 <script src="https://npmcdn.com/parse/dist/parse.js"></script>
