@@ -134,7 +134,7 @@
                 // source: https://love2dev.com/blog/html-geolocation/
                 this._geoWatch = navigator.geolocation.watchPosition(function setCurrentPosition(position) {
                     self._changeListeners.forEach((callback) => {
-                        callback({lat: position.coords.latitude, lng: position.coords.longitude})
+                        callback({lat: position.coords.latitude, lng: position.coords.longitude, acc: position.coords.accuracy})
                     })
                 }, function positionError(error) {
                     console.log(error)
