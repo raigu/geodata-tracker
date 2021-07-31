@@ -20,6 +20,7 @@
         body {
             margin: 0;
         }
+
     </style>
 </head>
 <body>
@@ -27,7 +28,12 @@
 
 <div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
 
+<div id="debug_view" style="position: absolute; bottom: 0;">
+    <button id="debug_view_toggle_btn">Debug</button>
+</div>
+
 <script>
+    let gps;
     let map;
     let track;
     let Report;
@@ -50,7 +56,7 @@
 
         index = new Track(map)
 
-        let gps = new GPS()
+        gps = new GPS()
         gps.createMarker(map)
             .then(marker => map.setView(marker.getLatLng(), 14))
         gps.addChangeListener(point => index.appendPoint(point))
@@ -160,10 +166,16 @@
 
         //Parse.initialize(ENV.Parse.APP_ID)
         //Parse.serverURL = ENV.Parse.serverURL
+
+        const debugView = new DebugView()
+        document.getElementById('debug_view_toggle_btn').addEventListener('click', function onDebugViewToggleBtnClick(event) {
+            debugView.toggle()
+        })
+        gps.addChangeListener(point => debugView.log(point))
     })
 </script>
 <script src="https://npmcdn.com/parse/dist/parse.js"></script>
-
+<script src="/js/debug_view.js"></script>
 
 </body>
 </html>
