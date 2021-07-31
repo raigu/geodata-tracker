@@ -10,7 +10,12 @@ class DebugView {
 
             element.style.position = 'absolute'
             element.style.right = '0'
+            element.style.margin = '0'
             element.style.background = 'white'
+
+            // prevent expanding over the edge, make scrollable
+            element.style.maxHeight = '100vh'
+            element.style.overflow = 'scroll'
 
             this.element = element
 
