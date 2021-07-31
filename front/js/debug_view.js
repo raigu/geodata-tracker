@@ -15,6 +15,8 @@ class DebugView {
             this.element = element
 
             document.body.appendChild(this.element)
+
+            this.log('Debug View:')
         }
 
 
