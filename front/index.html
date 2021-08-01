@@ -29,6 +29,10 @@
 <div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
 
 <div id="debug_view" style="position: absolute; bottom: 0; z-index: 1;">
+    <div>
+        <input type="checkbox" id="tracking_on_checkbox" name="tracking_on" value="on">
+        <label for="tracking_on_checkbox">Tracking on</label>
+    </div>
     <button id="debug_view_toggle_btn">Debug</button>
 </div>
 
@@ -36,6 +40,7 @@
     let gps;
     let map;
     let track;
+    let tracking;
     let Report;
 
     // User's location
@@ -54,20 +59,39 @@
             zoomOffset: -1
         }).addTo(map);
 
-        // https://stackoverflow.com/a/53116778/1412737
-        const uid = function(){
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        index = new TrackOnMap(map, new PersistentTrack(uid()))
-
         gps = new GPS()
         gps.createMarker(map)
             .then(marker => map.setView(marker.getLatLng(), 14))
-        gps.addChangeListener(point => index.appendPoint(point))
         gps.start()
     }
 
+
+    class Tracking {
+        constructor(gps, map) {
+            this._map = map
+            this._track = null
+            gps.addChangeListener(point => this._onChange(point))
+        }
+
+        _onChange(point) {
+            if (this._track) {
+                this._track.appendPoint(point)
+            }
+        }
+
+        on() {
+            // https://stackoverflow.com/a/53116778/1412737
+            const uid = function () {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            this._track = new TrackOnMap(this._map, new PersistentTrack(uid()))
+        }
+
+        off() {
+            this._track = null
+        }
+    }
 
     class Track {
         constructor(id) {
@@ -105,12 +129,12 @@
                 point: parsePoint,
                 acc: point.acc,
             })
-            .then((trackPoint) => {
-                console.log('Stored track point: ', parsePoint)
-            })
-            .catch((err) => {
-                console.error('Failed storing track point: ', err)
-            })
+                .then((trackPoint) => {
+                    console.log('Stored track point: ', parsePoint)
+                })
+                .catch((err) => {
+                    console.error('Failed storing track point: ', err)
+                })
         }
     }
 
@@ -227,6 +251,15 @@
             debugView.toggle()
         })
         gps.addChangeListener(point => debugView.log(point))
+
+        tracking = new Tracking(gps, map)
+        document.getElementById('tracking_on_checkbox').addEventListener('change', function onToggleTracking(event) {
+            if (event.target.checked) {
+                tracking.on()
+            } else {
+                tracking.off()
+            }
+        })
     })
 </script>
 <script src="https://npmcdn.com/parse/dist/parse.js"></script>
