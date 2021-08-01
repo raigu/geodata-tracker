@@ -54,7 +54,12 @@
             zoomOffset: -1
         }).addTo(map);
 
-        index = new TrackOnMap(map, new PersistentTrack())
+        // https://stackoverflow.com/a/53116778/1412737
+        const uid = function(){
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        index = new TrackOnMap(map, new PersistentTrack(uid()))
 
         gps = new GPS()
         gps.createMarker(map)
@@ -63,8 +68,10 @@
         gps.start()
     }
 
+
     class Track {
-        constructor() {
+        constructor(id) {
+            this._id = id
             this._points = []
         }
 
@@ -74,6 +81,10 @@
 
         get points() {
             return this._points
+        }
+
+        get id() {
+            return this._id;
         }
     }
 
@@ -86,10 +97,11 @@
 
             var parsePoint = new Parse.GeoPoint({latitude: point.lat, longitude: point.lng})
 
-            let TrackPoint = Parse.Object.extend("TrackObject")
+            let TrackPoint = Parse.Object.extend("TrackPoint")
             let trackPoint = new TrackPoint()
 
             trackPoint.save({
+                trackId: this.id,
                 point: parsePoint
             })
             .then((trackPoint) => {
