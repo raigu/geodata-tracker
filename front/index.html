@@ -64,11 +64,27 @@
         gps.start()
     }
 
+    /**
+     * I am an operation id that extracts it's value from URL path
+     */
+    class PathAsOperationId extends String {
+        valueOf() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let operationId = urlParams.get('op');
+
+            if (operationId) {
+                return operationId
+            } else {
+                return "None"
+            }
+        }
+    }
 
     class Tracking {
-        constructor(gps, map) {
+        constructor(gps, map, operationId) {
             this._map = map
             this._track = null
+            this._operationId = operationId
             gps.addChangeListener(point => this._onChange(point))
         }
 
@@ -84,7 +100,7 @@
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
             }
 
-            this._track = new TrackOnMap(this._map, new PersistentTrack(uid()))
+            this._track = new TrackOnMap(this._map, new PersistentTrack(uid(), this._operationId))
         }
 
         off() {
@@ -115,6 +131,13 @@
      * I am a track that persist itself in Parse Platform
      */
     class PersistentTrack extends Track {
+
+        constructor(trackId, operationId) {
+            super(trackId)
+
+            this._operationId = operationId
+        }
+
         appendPoint(point) {
             super.appendPoint(point);
 
@@ -123,7 +146,15 @@
             let TrackPoint = Parse.Object.extend("TrackPoint")
             let trackPoint = new TrackPoint()
 
+            console.log({
+                operationId: this._operationId,
+                trackId: this.id,
+                point: parsePoint,
+                acc: point.acc,
+            })
+
             trackPoint.save({
+                operationId: this._operationId,
                 trackId: this.id,
                 point: parsePoint,
                 acc: point.acc,
@@ -251,7 +282,7 @@
         })
         gps.addChangeListener(point => debugView.log(point))
 
-        tracking = new Tracking(gps, map)
+        tracking = new Tracking(gps, map, (new PathAsOperationId()).valueOf())
         document.getElementById('tracking_on_checkbox').addEventListener('change', function onToggleTracking(event) {
             if (event.target.checked) {
                 tracking.on()
