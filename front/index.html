@@ -54,7 +54,7 @@
             zoomOffset: -1
         }).addTo(map);
 
-        index = new Track(map)
+        index = new TrackOnMap(map, new Track())
 
         gps = new GPS()
         gps.createMarker(map)
@@ -63,17 +63,31 @@
         gps.start()
     }
 
-    /**
-     * My track on map
-     */
     class Track {
-        constructor(map) {
+        constructor() {
             this._points = []
-            this._layer = L.geoJSON().addTo(map)
         }
 
         appendPoint(point) {
             this._points.push(point)
+        }
+
+        get points() {
+            return this._points
+        }
+    }
+
+    /**
+     * My track on map
+     */
+    class TrackOnMap {
+        constructor(map, track) {
+            this._track = track
+            this._layer = L.geoJSON().addTo(map)
+        }
+
+        appendPoint(point) {
+            this._track.appendPoint(point)
             this._refresh()
         }
 
@@ -82,7 +96,7 @@
         }
 
         get geoJSON() {
-            let coordinates = this._points.map(point => [point.lng, point.lat])
+            let coordinates = this._track.points.map(point => [point.lng, point.lat])
             return [
                 {
                     "type": "LineString",
@@ -134,7 +148,11 @@
                 // source: https://love2dev.com/blog/html-geolocation/
                 this._geoWatch = navigator.geolocation.watchPosition(function setCurrentPosition(position) {
                     self._changeListeners.forEach((callback) => {
-                        callback({lat: position.coords.latitude, lng: position.coords.longitude, acc: position.coords.accuracy})
+                        callback({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            acc: position.coords.accuracy
+                        })
                     })
                 }, function positionError(error) {
                     console.log(error)
