@@ -40,6 +40,7 @@
     let gps;
     let map;
     let tracking;
+    let tracks;
     let Report;
 
     // User's location
@@ -197,6 +198,57 @@
         }
     }
 
+    class OperationTracksOnMap {
+        constructor(map, operationId) {
+            this._layer = L.geoJSON().addTo(map)
+
+            const TrackPoint = Parse.Object.extend("TrackPoint")
+            const query = new Parse.Query(TrackPoint)
+            query.limit(100000)
+            query.equalTo("operationId", operationId)
+
+            query.find()
+                .then(result => {
+                    let trackId, location;
+                    let tracks = {}
+                    for (let i = 0; i < result.length; i++) {
+                        trackId = result[i].get("trackId")
+                        if (!(trackId in tracks)) {
+                            tracks[trackId] = []
+                        }
+
+                        location = result[i].get("point")
+
+                        tracks[trackId].push([location.longitude, location.latitude])
+                    }
+                    let features = []
+                    for (trackId in tracks) {
+                        features.push({
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": tracks[trackId],
+                            },
+                            "properties": {
+                                "trackId": trackId,
+                            }
+                        })
+                    }
+
+                    let geoJson = {
+                        "type": "FeatureCollection",
+                        "features": features,
+                    }
+
+                    console.log(geoJson)
+                    this._layer.addData(geoJson)
+                })
+                .catch(err => {
+                    console.error('Loading operation tracks failed.', err)
+                })
+        }
+    }
+
     /**
      * My current location on map
      */
@@ -290,6 +342,8 @@
                 tracking.off()
             }
         })
+
+        tracks = new OperationTracksOnMap(map, (new PathAsOperationId()).valueOf())
     })
 </script>
 <script src="https://npmcdn.com/parse/dist/parse.js"></script>
