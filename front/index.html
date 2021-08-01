@@ -54,7 +54,7 @@
             zoomOffset: -1
         }).addTo(map);
 
-        index = new TrackOnMap(map, new Track())
+        index = new TrackOnMap(map, new PersistentTrack())
 
         gps = new GPS()
         gps.createMarker(map)
@@ -74,6 +74,30 @@
 
         get points() {
             return this._points
+        }
+    }
+
+    /**
+     * I am a track that persist itself in Prase Platform
+     */
+    class PersistentTrack extends Track {
+        appendPoint(point) {
+            super.appendPoint(point);
+
+            var parsePoint = new Parse.GeoPoint({latitude: point.lat, longitude: point.lng})
+
+            let TrackPoint = Parse.Object.extend("TrackObject")
+            let trackPoint = new TrackPoint()
+
+            trackPoint.save({
+                point: parsePoint
+            })
+            .then((trackPoint) => {
+                console.log('Stored track point: ', parsePoint)
+            })
+            .catch((err) => {
+                console.error('Failed storing track point: ', err)
+            })
         }
     }
 
@@ -182,8 +206,8 @@
     window.addEventListener('DOMContentLoaded', function onLoad() {
         initMap()
 
-        //Parse.initialize(ENV.Parse.APP_ID)
-        //Parse.serverURL = ENV.Parse.serverURL
+        Parse.initialize(ENV.Parse.APP_ID)
+        Parse.serverURL = ENV.Parse.serverURL
 
         const debugView = new DebugView()
         document.getElementById('debug_view_toggle_btn').addEventListener('click', function onDebugViewToggleBtnClick(event) {
