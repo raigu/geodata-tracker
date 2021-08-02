@@ -33,7 +33,7 @@
         <input type="checkbox" id="tracking_on_checkbox" name="tracking_on" value="on">
         <label for="tracking_on_checkbox">Tracking on</label>
     </div>
-    <button id="debug_view_toggle_btn">Debug</button>
+    <button id="debug_view_toggle_btn" style="display: none;">Debug</button>
 </div>
 
 <script>
@@ -393,17 +393,28 @@
 
     }
 
+    function initDebugView() {
+        const debugBtn = document.getElementById('debug_view_toggle_btn')
+        const debugView = new DebugView()
+
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('debug')) {
+            debugBtn.style.display = 'block'
+        }
+
+        debugBtn.addEventListener('click', function onDebugViewToggleBtnClick(event) {
+            debugView.toggle()
+        })
+        gps.addChangeListener(point => debugView.log(point))
+    }
+
     window.addEventListener('DOMContentLoaded', function onLoad() {
         initMap()
 
         Parse.initialize(ENV.Parse.APP_ID)
         Parse.serverURL = ENV.Parse.serverURL
 
-        const debugView = new DebugView()
-        document.getElementById('debug_view_toggle_btn').addEventListener('click', function onDebugViewToggleBtnClick(event) {
-            debugView.toggle()
-        })
-        gps.addChangeListener(point => debugView.log(point))
+        initDebugView()
 
         tracking = new Tracking(gps, map, (new PathAsOperationId()).valueOf())
         document.getElementById('tracking_on_checkbox').addEventListener('change', function onToggleTracking(event) {
