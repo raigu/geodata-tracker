@@ -81,12 +81,82 @@
         }
     }
 
+    /**
+     * I will prevent the screen to lock.
+     *
+     * In locked screen the location tracking does not work.
+     * I will fail gracefully if the browser does not support the feature.
+     */
+    class ScreenLock {
+
+        constructor() {
+            this._on = false
+            this._wakeLock = null
+
+            if (this.supported) {
+                document.addEventListener('visibilitychange', () => {
+                    // The screen lock is turned off when user goes away.
+                    // Let's activate when user has previously turned it on and comes back
+                    if (this._on && document.visibilityState === 'visible' && !this._wakeLock) {
+                        this._lockScreen()
+                    }
+                });
+            } else {
+                console.log("[ScreenLock] The Browser does not support the Screen Wake Lock API.")
+            }
+        }
+
+        on() {
+            console.log('[ScreenLock] turned ON')
+            this._on = true
+
+            if (this.supported) {
+                this._lockScreen()
+            }
+        }
+
+        off() {
+            this._on = false
+            console.log('[ScreenLock] turned OFF')
+
+            if (this._wakeLock) {
+                this._wakeLock.release()
+            }
+        }
+
+        _lockScreen() {
+            navigator.wakeLock.request('screen')
+                .then(wakeLock => {
+                    console.log('[ScreenLock] wakeLock request success')
+                    wakeLock.addEventListener('release', () => {
+                        console.log('[ScreenLock] released')
+                        this._wakeLock = null
+                    })
+                    this._wakeLock = wakeLock
+                })
+                .catch(err => {
+                    console.err('[ScreenLock] wakeLock request failed.', err)
+                })
+        }
+
+
+        /**
+         * Is the feature supported by browser or not?
+         *
+         * @returns {boolean}
+         */
+        get supported() {
+            return 'wakeLock' in navigator
+        }
+    }
+
     class Tracking {
         constructor(gps, map, operationId) {
             this._map = map
             this._track = null
             this._operationId = operationId
             gps.addChangeListener(point => this._onChange(point))
+            this._screenLock = new ScreenLock()
         }
 
         _onChange(point) {
@@ -102,10 +172,12 @@
             }
 
             this._track = new TrackOnMap(this._map, new PersistentTrack(uid(), this._operationId))
+            this._screenLock.on()
         }
 
         off() {
             this._track = null
+            this._screenLock.off()
         }
     }
 
