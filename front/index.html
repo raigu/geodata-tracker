@@ -1,437 +1,78 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Staap</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico"/>
-    <script src="js/envs.js"></script>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-            crossorigin=""></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
 
     <style>
-        body {
-            margin: 0;
+        .container {
+            width: auto;
+            max-width: 680px;
         }
-
     </style>
+
+    <title>Otsingute app</title>
 </head>
-<body>
 
+<body class="d-flex flex-column h-100">
 
-<div id="mapid" style="width: 100%; height: 100%; position: fixed"></div>
+<main class="flex-shrink-0">
+    <div class="container">
+        <h1 class="mt-5">Kaardirakendus otsingute koordineerimiseks</h1>
 
-<div style="position: absolute; right: 0; margin: 10px 10px;">
-    <input type="checkbox" id="tracking_on_checkbox" name="tracking_on" value="on" style="transform:scale(2);">
-    <label for="tracking_on_checkbox" style="font-size: 1.5em; text-shadow: 1px 1px 3px white;">Track me</label>
-</div>
+        <h2 class="mt-5">Kuidas töötab?</h2>
 
-<div id="debug_view" style="position: absolute; bottom: 0; z-index: 2;">
-    <button id="debug_view_toggle_btn" style="display: none;">Debug</button>
-</div>
+        <p>
+            Iga otsingu jaoks luuakse unikaalne link <a href="./create.html">siin</a>. Otsingu linki saab jagada sotsiaalmeedias või edastada muul moel
+            (e-mail, SMS).
+        </p>
 
-<script>
-    let gps;
-    let map;
-    let tracking;
-    let tracks;
-    let Report;
+        <p>
+            Lingile minnes näeb kaarti ja osalejate poolt salvestatud teekondi. Otsingutel osaleja saab suunduda aladele
+            või
+            kohtadesse mida pole veel läbi käidud. Otsingutel osaleja saab sisse/välja lülitada enda teekonna
+            salvestamise.
+        </p>
 
-    // User's location
-    var lat = 59.376227410403395
-    var lon = 24.62042224964793
+        <h2 class="mt-5">Nõuded brauserile</h2>
 
-    function initMap() {
-        map = L.map('mapid').setView([lat, lon], 8);
+        <p>
+            Kaardi vaatamine toimib enamus uuemates brauserites.
+        </p>
 
-        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-            maxZoom: 18,
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-                'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1
-        }).addTo(map);
+        <p>
+            Otsingutel saab osaleda järgmiste mobiili brauseritega (<i>tracking</i>).
+        </p>
 
-        gps = new GPS()
-        gps.createMarker(map)
-            .then(marker => map.setView(marker.getLatLng(), 14))
-        gps.start()
-    }
+        <ul>
+            <li>Chrome for Android 92-</li>
+            <li>Safari on iOS 14.7- <sup style="color: red;">*</sup></li>
+            <li>Firefox for Android 90-<sup style="color:red">*</sup></li>
+        </ul>
 
-    /**
-     * I am an operation id that extracts it's value from URL path
-     */
-    class PathAsOperationId extends String {
-        valueOf() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let operationId = urlParams.get('op');
+        <p style="font-size: 0.8em;">
+            <sup style="color:red">*</sup>Teekonna salvestamine (<i>trackimine</i>) mobiilis nõuab, et ekraanilukk oleks
+            välja lülitatud. Chrome puhul
+            teeb rakendus seda automaatselt. Nende brauserite puhul tuleb automaatne ekraanilukk otsingute ajaks
+            käsitsi välja lülitada.
+        </p>
 
-            if (operationId) {
-                return operationId
-            } else {
-                return "None"
-            }
-        }
-    }
+        <h2 class="mt-5">Tõrked</h2>
 
-    /**
-     * I will prevent the screen to lock.
-     *
-     * In locked screen the location tracking does not work.
-     * I will fail gracefully if the browser does not support the feature.
-     */
-    class ScreenLock {
+        <h3 class="mt-5">Teekonna salvestamine ei tööta</h3>
 
-        constructor() {
-            this._on = false
-            this._wakeLock = null
+        <p>Kontrolli, et oled brauseris lubanud rakendusel kasutada oma asukoha infot.</p>
 
-            if (this.supported) {
-                document.addEventListener('visibilitychange', () => {
-                    // The screen lock is turned off when user goes away.
-                    // Let's activate when user has previously turned it on and comes back
-                    if (this._on && document.visibilityState === 'visible' && !this._wakeLock) {
-                        this._lockScreen()
-                    }
-                });
-            } else {
-                console.log("[ScreenLock] The Browser does not support the Screen Wake Lock API.")
-            }
-        }
+        <h2 class="mt-5">Kes?</h2>
 
-        on() {
-            console.log('[ScreenLock] turned ON')
-            this._on = true
-
-            if (this.supported) {
-                this._lockScreen()
-            }
-        }
-
-        off() {
-            this._on = false
-            console.log('[ScreenLock] turned OFF')
-
-            if (this._wakeLock) {
-                this._wakeLock.release()
-            }
-        }
-
-        _lockScreen() {
-            navigator.wakeLock.request('screen')
-                .then(wakeLock => {
-                    console.log('[ScreenLock] wakeLock request success')
-                    wakeLock.addEventListener('release', () => {
-                        console.log('[ScreenLock] released')
-                        this._wakeLock = null
-                    })
-                    this._wakeLock = wakeLock
-                })
-                .catch(err => {
-                    console.err('[ScreenLock] wakeLock request failed.', err)
-                })
-        }
-
-
-        /**
-         * Is the feature supported by browser or not?
-         *
-         * @returns {boolean}
-         */
-        get supported() {
-            return 'wakeLock' in navigator
-        }
-    }
-
-    class Tracking {
-        constructor(gps, map, operationId) {
-            this._map = map
-            this._track = null
-            this._operationId = operationId
-            gps.addChangeListener(point => this._onChange(point))
-            this._screenLock = new ScreenLock()
-        }
-
-        _onChange(point) {
-            if (this._track) {
-                this._track.appendPoint(point)
-            }
-        }
-
-        on() {
-            // https://stackoverflow.com/a/53116778/1412737
-            const uid = function () {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2);
-            }
-
-            this._track = new TrackOnMap(this._map, new PersistentTrack(uid(), this._operationId))
-            this._screenLock.on()
-        }
-
-        off() {
-            this._track = null
-            this._screenLock.off()
-        }
-    }
-
-    class Track {
-        constructor(id) {
-            this._id = id
-            this._points = []
-        }
-
-        appendPoint(point) {
-            this._points.push(point)
-        }
-
-        get points() {
-            return this._points
-        }
-
-        get id() {
-            return this._id;
-        }
-    }
-
-    /**
-     * I am a track that persist itself in Parse Platform
-     */
-    class PersistentTrack extends Track {
-
-        constructor(trackId, operationId) {
-            super(trackId)
-
-            this._operationId = operationId
-        }
-
-        appendPoint(point) {
-            super.appendPoint(point);
-
-            var parsePoint = new Parse.GeoPoint({latitude: point.lat, longitude: point.lng})
-
-            let TrackPoint = Parse.Object.extend("TrackPoint")
-            let trackPoint = new TrackPoint()
-
-            console.log({
-                operationId: this._operationId,
-                trackId: this.id,
-                point: parsePoint,
-                acc: point.acc,
-            })
-
-            trackPoint.save({
-                operationId: this._operationId,
-                trackId: this.id,
-                point: parsePoint,
-                acc: point.acc,
-            })
-                .then((trackPoint) => {
-                    console.log('Stored track point: ', parsePoint)
-                })
-                .catch((err) => {
-                    console.error('Failed storing track point: ', err)
-                })
-        }
-    }
-
-    /**
-     * My track on map
-     */
-    class TrackOnMap {
-        constructor(map, track) {
-            this._track = track
-            this._layer = L.geoJSON().addTo(map)
-        }
-
-        appendPoint(point) {
-            this._track.appendPoint(point)
-            this._refresh()
-        }
-
-        _refresh() {
-            this._layer.addData(this.geoJSON)
-        }
-
-        get geoJSON() {
-            let coordinates = this._track.points.map(point => [point.lng, point.lat])
-            return [
-                {
-                    "type": "LineString",
-                    "coordinates": coordinates,
-                }
-            ]
-        }
-    }
-
-    class OperationTracksOnMap {
-        constructor(map, operationId) {
-            this._layer = L.geoJSON().addTo(map)
-
-            const TrackPoint = Parse.Object.extend("TrackPoint")
-            const query = new Parse.Query(TrackPoint)
-            query.limit(100000)
-            query.equalTo("operationId", operationId)
-
-            query.find()
-                .then(result => {
-                    let trackId, location;
-                    let tracks = {}
-                    for (let i = 0; i < result.length; i++) {
-                        trackId = result[i].get("trackId")
-                        if (!(trackId in tracks)) {
-                            tracks[trackId] = []
-                        }
-
-                        location = result[i].get("point")
-
-                        tracks[trackId].push([location.longitude, location.latitude])
-                    }
-                    let features = []
-                    for (trackId in tracks) {
-                        features.push({
-                            "type": "Feature",
-                            "geometry": {
-                                "type": "LineString",
-                                "coordinates": tracks[trackId],
-                            },
-                            "properties": {
-                                "trackId": trackId,
-                            }
-                        })
-                    }
-
-                    let geoJson = {
-                        "type": "FeatureCollection",
-                        "features": features,
-                    }
-
-                    this._layer.addData(geoJson)
-                })
-                .catch(err => {
-                    console.error('Loading operation tracks failed.', err)
-                })
-        }
-    }
-
-    /**
-     * My current location on map
-     */
-    class GPS {
-
-        constructor() {
-            this._changeListeners = []
-        }
-
-        get point() {
-            return new Promise((resolve, reject) => {
-                // Try HTML5 geolocation.
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const pos = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude,
-                            };
-                            resolve(pos)
-                        },
-                        () => {
-                            reject("The Geolocation service failed.")
-                        }
-                    );
-                } else {
-                    // Browser doesn't support Geolocation
-                    reject("Your browser doesn't support geolocation")
-                }
-            })
-        }
-
-        addChangeListener(callback) {
-            this._changeListeners.push(callback)
-        }
-
-        start() {
-            if (!this._geoWatch && navigator.geolocation) {
-                let self = this
-                // source: https://love2dev.com/blog/html-geolocation/
-                this._geoWatch = navigator.geolocation.watchPosition(function setCurrentPosition(position) {
-                    self._changeListeners.forEach((callback) => {
-                        callback({
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            acc: position.coords.accuracy
-                        })
-                    })
-                }, function positionError(error) {
-                    console.log(error)
-                }, {
-                    enableHighAccuracy: true, timeout: 15000, maximumAge: 0
-                });
-            }
-        }
-
-        createMarker(map) {
-            return this.point
-                .then((point) => {
-                    let latLng = L.latLng(point.lat, point.lng)
-                    let marker = L.marker(latLng).addTo(map);
-
-                    this.addChangeListener((point) => {
-                        let latLng = L.latLng(point.lat, point.lng)
-                        marker.setLatLng(latLng)
-                    })
-
-                    return marker;
-                })
-        }
-
-    }
-
-    function initDebugView() {
-        const debugBtn = document.getElementById('debug_view_toggle_btn')
-        const debugView = new DebugView()
-
-        const urlParams = new URLSearchParams(window.location.search)
-        if (urlParams.get('debug')) {
-            debugBtn.style.display = 'block'
-        }
-
-        debugBtn.addEventListener('click', function onDebugViewToggleBtnClick(event) {
-            debugView.toggle()
-        })
-        gps.addChangeListener(point => debugView.log(point))
-    }
-
-    window.addEventListener('DOMContentLoaded', function onLoad() {
-        initMap()
-
-        Parse.initialize(ENV.Parse.APP_ID)
-        Parse.serverURL = ENV.Parse.serverURL
-
-        initDebugView()
-
-        tracking = new Tracking(gps, map, (new PathAsOperationId()).valueOf())
-        document.getElementById('tracking_on_checkbox').addEventListener('change', function onToggleTracking(event) {
-            if (event.target.checked) {
-                tracking.on()
-            } else {
-                tracking.off()
-            }
-        })
-
-        tracks = new OperationTracksOnMap(map, (new PathAsOperationId()).valueOf())
-    })
-</script>
-<script src="https://npmcdn.com/parse/dist/parse.js"></script>
-<script src="/js/debug_view.js"></script>
-
+        <p>Rakendust arendavad ja testivad entusiastid oma vabast ajast. <a
+                href="https://github.com/raigu/geotag">Lähtekood</a> on GitHubis.</p>
+    </div>
+</main>
 </body>
 </html>
 

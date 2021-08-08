@@ -55,7 +55,7 @@
         let link = document.getElementById('op_link')
 
         name.addEventListener('input', function (event) {
-            let path = '?op=' + slugify(event.target.value)
+            let path = 'map.html?op=' + slugify(event.target.value)
 
             let newURL = window.location.protocol + "//" + window.location.host + "/" + path
 
