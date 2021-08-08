@@ -1,67 +1,78 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Tutvustus</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
 
     <style>
-        body {
-            margin: auto;
-            max-width: 800px;
+        .container {
+            width: auto;
+            max-width: 680px;
         }
-
     </style>
+
+    <title>Otsingute app</title>
 </head>
-<body>
-<section>
-    <h1>Kaardirakendus otsingute koordineerimiseks</h1>
 
-    <h2>Kuidas töötab?</h2>
+<body class="d-flex flex-column h-100">
 
-    <p>
-        Iga otsingu jaoks luuakse unikaalne link. Otsingu linki saab jagada sotsiaalmeedias või edastada muul moel
-        (e-mail, SMS).
-    </p>
+<main class="flex-shrink-0">
+    <div class="container">
+        <h1 class="mt-5">Kaardirakendus otsingute koordineerimiseks</h1>
 
-    <p>
-        Lingile minnes näeb kaarti ja osalejate poolt salvestatud teekondi. Otsingutel osaleja saab suunduda aladele või
-        kohtadesse mida pole veel läbi käidud. Otsingutel osaleja saab sisse/välja lülitada enda teekonna salvestamise.
-    </p>
+        <h2 class="mt-5">Kuidas töötab?</h2>
 
-    <h2>Nõuded brauserile</h2>
+        <p>
+            Iga otsingu jaoks luuakse unikaalne link. Otsingu linki saab jagada sotsiaalmeedias või edastada muul moel
+            (e-mail, SMS).
+        </p>
 
-    <p>
-        Kaardi vaatamine toimib enamus uuemates brauserites.
-    </p>
+        <p>
+            Lingile minnes näeb kaarti ja osalejate poolt salvestatud teekondi. Otsingutel osaleja saab suunduda aladele
+            või
+            kohtadesse mida pole veel läbi käidud. Otsingutel osaleja saab sisse/välja lülitada enda teekonna
+            salvestamise.
+        </p>
 
-    <p>
-        Otsingutel saab osaleda järgmiste mobiili brauseritega (<i>tracking</i>).
-    </p>
+        <h2 class="mt-5">Nõuded brauserile</h2>
 
-    <ul>
-        <li>Chrome for Android 92-</li>
-        <li>Safari on iOS 14.7- <sup style="color: red;">*</sup></li>
-        <li>Firefox for Android 90-<sup style="color:red">*</sup></li>
-    </ul>
+        <p>
+            Kaardi vaatamine toimib enamus uuemates brauserites.
+        </p>
 
-    <p style="font-size: 0.8em;">
-        <sup style="color:red">*</sup>Teekonna salvestamine (<i>trackimine</i>) mobiilis nõuab, et ekraanilukk oleks
-        välja lülitatud. Chrome puhul
-        teeb rakendus seda automaatselt. Nende brauserite puhul tuleb automaatne ekraanilukk otsingute ajaks
-        käsitsi välja lülitada.
-    </p>
+        <p>
+            Otsingutel saab osaleda järgmiste mobiili brauseritega (<i>tracking</i>).
+        </p>
 
-    <h2>Tõrked</h2>
+        <ul>
+            <li>Chrome for Android 92-</li>
+            <li>Safari on iOS 14.7- <sup style="color: red;">*</sup></li>
+            <li>Firefox for Android 90-<sup style="color:red">*</sup></li>
+        </ul>
 
-    <h3>Teekonna salvestamine ei tööta</h3>
+        <p style="font-size: 0.8em;">
+            <sup style="color:red">*</sup>Teekonna salvestamine (<i>trackimine</i>) mobiilis nõuab, et ekraanilukk oleks
+            välja lülitatud. Chrome puhul
+            teeb rakendus seda automaatselt. Nende brauserite puhul tuleb automaatne ekraanilukk otsingute ajaks
+            käsitsi välja lülitada.
+        </p>
 
-    <p>Kontrolli, et oled brauseris lubanud rakendusel kasutada oma asukoha infot.</p>
+        <h2 class="mt-5">Tõrked</h2>
 
-    <h2>Kes?</h2>
+        <h3 class="mt-5">Teekonna salvestamine ei tööta</h3>
 
-    <p>Rakendust arendavad ja testivad entusiastid oma vabast ajast. <a
-            href="https://github.com/raigu/geotag">Lähtekood</a> on GitHubis.</p>
-</section>
+        <p>Kontrolli, et oled brauseris lubanud rakendusel kasutada oma asukoha infot.</p>
+
+        <h2 class="mt-5">Kes?</h2>
+
+        <p>Rakendust arendavad ja testivad entusiastid oma vabast ajast. <a
+                href="https://github.com/raigu/geotag">Lähtekood</a> on GitHubis.</p>
+    </div>
+</main>
 </body>
+</html>
+
